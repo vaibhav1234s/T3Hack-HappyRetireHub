@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Emergency! Button</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        button {
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<button onclick="openNearestWhatsApp()">Nearest Helper</button>
+<button onclick="openDefaultWhatsApp()">Default Helper</button>
+
+<script>
+    const numbers = [
+        { phone: '+919423453892', latitude: 37.7749, longitude: -122.4194 },
+        { phone: '+919623213098', latitude: 40.7128, longitude: -74.0060 },
+        { phone: '+919764749333', latitude: 34.0522, longitude: -118.2437 }
+    ];
+
+    function openNearestWhatsApp() {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const userLatitude = position.coords.latitude;
+                const userLongitude = position.coords.longitude;
+
+                // Find the nearest number based on the distance formula (simplified)
+                const nearestNumber = findNearestNumber(userLatitude, userLongitude);
+
+                // Open WhatsApp with the nearest number and default message including location
+                const defaultMessage = `Hello,i have an emergency!  
+                My location: https://maps.google.com/?q=${userLatitude},${userLongitude}`;
+                const url = `https://wa.me/${nearestNumber.phone}?text=${encodeURIComponent(defaultMessage)}`;
+                window.open(url, '_blank');
+            },
+            error => {
+                console.error('Error getting user location:', error);
+            }
+        );
+    }
+
+    function findNearestNumber(userLatitude, userLongitude) {
+        let nearestNumber = null;
+        let minDistance = Infinity;
+
+        for (const number of numbers) {
+            const distance = calculateDistance(userLatitude, userLongitude, number.latitude, number.longitude);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestNumber = number;
+            }
+        }
+
+        return nearestNumber;
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in kilometers
+        const dLat = degToRad(lat2 - lat1);
+        const dLon = degToRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(degToRad(lat1)) * Math.cos(degToRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c; // Distance in kilometers
+        return distance;
+    }
+
+    function degToRad(degrees) {
+        return degrees * (Math.PI / 180);
+    }
+
+    function openDefaultWhatsApp() {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const userLatitude = position.coords.latitude;
+                const userLongitude = position.coords.longitude;
+
+                // Open WhatsApp with the default number and default message including location
+                const defaultMessage = `Hello,i have an emergency!  
+                My location: https://maps.google.com/?q=${userLatitude},${userLongitude}`;
+                const defaultPhoneNumber = '+919529059987';
+                const url = `https://wa.me/${defaultPhoneNumber}?text=${encodeURIComponent(defaultMessage)}`;
+                window.open(url, '_blank');
+            },
+            error => {
+                console.error('Error getting user location:', error);
+            }
+        );
+    }
+</script>
+
+</body>
+</html>
